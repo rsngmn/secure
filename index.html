@@ -56,7 +56,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyCquKmonZI6sXLCIzl8BVz_QayGZK6yY9A",
   authDomain: "rsngmn-6da62.firebaseapp.com",
   projectId: "rsngmn-6da62",
-  storageBucket: "rsngmn-6da62.firebasestorage.app",
+  storageBucket: "rsngmn-6da62.appspot.com", // FIXED STORAGE BUCKET
   messagingSenderId: "1045190357466",
   appId: "1:1045190357466:web:100a639d820269fce6d0e3"
 };
@@ -79,11 +79,34 @@ function getCookie(name){
 /* Crypto helpers */
 const enc=new TextEncoder(),dec=new TextDecoder();
 async function genKey(){return crypto.subtle.generateKey({name:"AES-GCM",length:256},true,["encrypt","decrypt"]);}
-async function expKey(k){const raw=await crypto.subtle.exportKey("raw",k);return btoa(String.fromCharCode(...new Uint8Array(raw)));}
-async function impKey(b64){const bin=atob(b64),buf=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)buf[i]=bin.charCodeAt(i);return crypto.subtle.importKey("raw",buf.buffer,"AES-GCM",true,["encrypt","decrypt"]);}
+async function expKey(k){
+  const raw=await crypto.subtle.exportKey("raw",k);
+  return btoa(String.fromCharCode(...new Uint8Array(raw)));
+}
+async function impKey(b64){
+  const bin=atob(b64),buf=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)buf[i]=bin.charCodeAt(i);
+  return crypto.subtle.importKey("raw",buf.buffer,"AES-GCM",true,["encrypt","decrypt"]);
+}
 function randIv(){return crypto.getRandomValues(new Uint8Array(12));}
-async function encryptText(txt,key){const iv=randIv();const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},key,enc.encode(txt));return{cipher:btoa(String.fromCharCode(...new Uint8Array(ct))),iv:btoa(String.fromCharCode(...iv))};}
-async function decryptText(ciph,ivB64,key){try{const ct=Uint8Array.from(atob(ciph),c=>c.charCodeAt(0)).buffer;const iv=Uint8Array.from(atob(ivB64),c=>c.charCodeAt(0));const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv},key,ct);return dec.decode(pt);}catch{return null;}}
+async function encryptText(txt,key){
+  const iv=randIv();
+  const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},key,enc.encode(txt));
+  return {
+    cipher: btoa(String.fromCharCode(...new Uint8Array(ct))),
+    iv: btoa(String.fromCharCode(...iv))
+  };
+}
+async function decryptText(ciph,ivB64,key){
+  try{
+    const ct=Uint8Array.from(atob(ciph),c=>c.charCodeAt(0)).buffer;
+    const iv=Uint8Array.from(atob(ivB64),c=>c.charCodeAt(0));
+    const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv},key,ct);
+    return dec.decode(pt);
+  }catch(e){
+    return null;
+  }
+}
 
 /* UI */
 const sendBtn=document.getElementById('sendBtn');
@@ -103,7 +126,11 @@ let isAdmin=false;
 
 /* Auth */
 onAuthStateChanged(auth,user=>{
-  if(user){ myUid=user.uid; init(); }
+  if(user){
+    myUid=user.uid; 
+    status.innerText = "Authenticated. Loading room…";
+    init();
+  }
   else signInAnonymously(auth);
 });
 
@@ -120,18 +147,24 @@ async function init(){
       setCookie("rsngmn_key",b64);
       await setDoc(metaDoc,{admin:myUid,createdAt:Date.now()});
       isAdmin=true;
+      status.innerText = "You are admin. Room created.";
     }else{
       // Show join box
       joinBox.style.display="block";
+      status.innerText = "Room exists. Paste key to join.";
       return;
     }
   }else{
     key=await impKey(b64);
-    if(snap.exists() && snap.data().admin===myUid){isAdmin=true;}
+    if(snap.exists() && snap.data().admin===myUid){
+      isAdmin=true;
+      status.innerText = "You are admin.";
+    }else{
+      status.innerText = "Joined as guest.";
+    }
   }
 
   if(isAdmin){ adminTools.style.display="block"; }
-
   listen();
 }
 
@@ -151,13 +184,23 @@ joinBtn.onclick=async()=>{
 /* Send */
 sendBtn.onclick=async()=>{
   const txt=textInput.value.trim();if(!txt||!key)return;
-  const {cipher,iv}=await encryptText(txt,key);
-  await addDoc(collection(db,"rooms","rsngmn","messages"),{
-    senderId:myUid,cipher,iv,
-    createdAt:serverTimestamp()
-  });
-  textInput.value="";
+  try {
+    const {cipher,iv}=await encryptText(txt,key);
+    await addDoc(collection(db,"rooms","rsngmn","messages"),{
+      senderId:myUid,cipher,iv,
+      createdAt:serverTimestamp()
+    });
+    textInput.value="";
+    status.innerText = "Message sent.";
+  } catch (e) {
+    status.innerText = "Failed to send message.";
+  }
 };
+
+// Allow Enter key to send
+textInput.addEventListener('keypress',e=>{
+  if(e.key==="Enter") sendBtn.onclick();
+});
 
 /* Listen */
 function listen(){
@@ -181,8 +224,15 @@ function listen(){
 }
 
 /* Admin */
-exportKeyBtn.onclick=()=>{const b64=getCookie("rsngmn_key");if(!b64)return alert("No key cookie.");prompt("Copy room key:",b64);};
-revokeBtn.onclick=()=>{document.cookie="rsngmn_key=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;";location.reload();};
+exportKeyBtn.onclick=()=>{
+  const b64=getCookie("rsngmn_key");
+  if(!b64)return alert("No key cookie.");
+  prompt("Copy room key:",b64);
+};
+revokeBtn.onclick=()=>{
+  document.cookie="rsngmn_key=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;";
+  location.reload();
+};
 
 function escapeHtml(t){return t.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));}
 </script>
