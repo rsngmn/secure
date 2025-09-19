@@ -1,215 +1,1177 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>RSNGMN Secure Chat</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    html, body { height: 100%; }
-    body { font-family: 'Roboto', sans-serif; background: #f6f6f6; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }
-    .chat-card {
-      min-width: 340px;
-      max-width: 390px;
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-      display: flex;
-      flex-direction: column;
-      height: 70vh;
-      overflow: hidden;
-    }
-    .chat-header { padding: 16px 20px; background: #222; color: #fff; font-size: 20px; letter-spacing: 2px; text-align: center; }
-    #messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; background: #fafbfc; }
-    .msg { max-width: 80%; padding: 10px 16px; border-radius: 14px; font-size: 15px; line-height: 1.45; word-break: break-word; background: #eee; color: #222; align-self: flex-start; }
-    .mine { background: #222; color: #fff; align-self: flex-end; }
-    .meta { font-size: 11px; opacity: 0.6; margin-bottom: 2px; }
-    .chat-inputs { display: flex; border-top: 1px solid #ececec; background: #fff; padding: 14px 18px; gap: 8px; }
-    input, button { font-family: 'Roboto', sans-serif; font-size: 15px; padding: 9px; border: none; outline: none; }
-    input { flex: 1; background: #f2f2f2; color: #222; border-radius: 8px; }
-    button { background: #222; color: #fff; border-radius: 8px; cursor: pointer; font-weight: 500; }
-    button:hover { background: #444; }
-    #status { font-size: 13px; opacity: 0.7; padding: 8px 20px; border-top: 1px solid #ececec; background: #fafbfc; text-align: center; }
-    #keyTools { display: flex; gap: 6px; justify-content: center; padding: 10px 0 0 0; }
-    #keyTools button { background: #f2f2f2; color: #222; border: 1px solid #ccc; font-size: 12px; padding: 6px 10px; border-radius: 7px;}
-    #keyTools button:hover { background: #e2e2e2; }
-    #keyBox { display:none; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:32px 20px; }
-    #keyBox input { width: 80%; background: #fafbfc; }
-    #keyBox button { width: 80%; margin-top: 6px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="data:image/png;base64,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" />
+  <title>RSNGMN</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: monospace;
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        #messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 10px 0;
+            border-bottom: 1px solid #333;
+            margin-bottom: 10px;
+        }
+        .message {
+            margin-bottom: 10px;
+            line-height: 1.4;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        .message:hover {
+            background-color: #111;
+        }
+        .username {
+            font-weight: bold;
+        }
+        .timestamp {
+            color: #888;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+        .system-message {
+            color: #FF6B6B;
+            font-style: italic;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .warning-message {
+            color: #FFA500;
+            font-style: italic;
+            text-align: center;
+            margin: 10px 0;
+            border: 1px solid #FFA500;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        .moderator-message {
+            color: #00BFFF;
+            font-style: italic;
+            text-align: center;
+            margin: 10px 0;
+            border: 1px solid #00BFFF;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        #input-container {
+            display: flex;
+            gap: 10px;
+        }
+        #message-input {
+            flex-grow: 1;
+            background: #222;
+            color: white;
+            border: 1px solid #444;
+            padding: 10px;
+            font-family: monospace;
+        }
+        #send-button {
+            background: #222;
+            color: white;
+            border: 1px solid #444;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: monospace;
+        }
+        #send-button:hover {
+            background: #333;
+        }
+        #status {
+            color: #888;
+            font-size: 0.9em;
+            margin-top: 10px;
+            text-align: center;
+        }
+        .info-panel {
+            background: #222;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .capacity-info {
+            color: #4cc9f0;
+        }
+        .command-help {
+            color: #888;
+            font-size: 0.9em;
+            margin-top: 5px;
+            text-align: center;
+        }
+        .creator-badge {
+            background: linear-gradient(45deg, #00FFFF, #008B8B);
+            color: black;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        .creator-theme {
+            color: #00FFFF !important;
+            text-shadow: 0 0 5px #00FFFF, 0 0 10px #00FFFF;
+        }
+        .donor-badge {
+            background: linear-gradient(45deg, #FFA500, #FFD700);
+            color: black;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        .donation-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #222;
+            border: 1px solid #444;
+            padding: 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            width: 350px;
+        }
+        .donation-modal h3 {
+            margin-top: 0;
+            color: #FFD700;
+        }
+        .donation-modal p {
+            margin: 10px 0;
+            line-height: 1.4;
+        }
+        .donation-modal button {
+            background: #333;
+            color: white;
+            border: 1px solid #555;
+            padding: 8px 16px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .donation-modal button:hover {
+            background: #444;
+        }
+        .donation-status {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .status-waiting {
+            background: #2c3e50;
+            color: #3498db;
+        }
+        .status-processing {
+            background: #34495e;
+            color: #f39c12;
+        }
+        .status-success {
+            background: #2ecc71;
+            color: white;
+        }
+        .status-error {
+            background: #e74c3c;
+            color: white;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+        }
+        .phantom-logo {
+            width: 24px;
+            height: 24px;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        .transaction-details {
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        .wallet-connected {
+            color: #4cc9f0;
+            margin-left: 10px;
+            font-size: 0.9em;
+        }
+        .help-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #222;
+            border: 1px solid #444;
+            padding: 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .help-modal h3 {
+            margin-top: 0;
+            color: #FFD700;
+            text-align: center;
+        }
+        .help-section {
+            margin: 15px 0;
+        }
+        .help-section h4 {
+            color: #4cc9f0;
+            margin-bottom: 8px;
+        }
+        .command-list {
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .command-item {
+            margin: 8px 0;
+            line-height: 1.4;
+        }
+        .command-name {
+            color: #FFD700;
+            font-weight: bold;
+        }
+        .command-desc {
+            color: #ccc;
+        }
+        .secret-note {
+            color: #888;
+            font-style: italic;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+        
+        /* New styles for command effects */
+        .glow-message {
+            text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #ff4da6, 0 0 20px #ff4da6;
+        }
+        .rainbow-text {
+            background-image: linear-gradient(to left, violet, indigo, blue, green, yellow, orange, red);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow-animation 3s infinite;
+        }
+        @keyframes rainbow-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .whisper-message {
+            color: #aaa;
+            font-style: italic;
+        }
+    </style>
+    
+    <!-- Firebase SDK v8.10.1 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <!-- Phantom Wallet SDK -->
+    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
 </head>
 <body>
-  <div class="chat-card">
-    <div class="chat-header">RSNGMN Secure Chat</div>
-    <div id="keyBox">
-      <input id="pasteKey" placeholder="Paste room key here" />
-      <button id="joinBtn">Join Room</button>
-      <div style="font-size:12px;color:#888;">or</div>
-      <button id="newRoomBtn">Create New Room</button>
+    <div class="info-panel">
+        <div>RSNGMN <span id="wallet-status" class="wallet-connected"></span></div>
+        <div class="capacity-info">Screen capacity: <span id="capacity">calculating...</span> messages</div>
     </div>
-    <div id="messages"></div>
-    <div id="keyTools" style="display:none;">
-      <button id="exportKeyBtn">Export Room Key</button>
-      <button id="revokeBtn">Revoke Key</button>
+    
+    <div id="chat-container">
+        <div id="messages"></div>
+        <div id="input-container">
+            <input type="text" id="message-input" placeholder="Type your message...">
+            <button id="send-button">Send</button>
+        </div>
+        <div class="command-help">Type /help for available commands</div>
+        <div id="status">Setting up Firebase...</div>
     </div>
-    <div class="chat-inputs">
-      <input id="textInput" placeholder="Type a message..." />
-      <button id="sendBtn">Send</button>
-    </div>
-    <div id="status">Connecting…</div>
-  </div>
 
-<script type="module">
-// Firebase CDN v9 Modular
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9/firebase-auth.js";
-import { getFirestore, collection, doc, setDoc, getDoc, addDoc, onSnapshot, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/9/firebase-firestore.js";
+    <div class="overlay" id="overlay"></div>
+    <div class="donation-modal" id="donation-modal">
+        <h3><img src="data:image/svg+xml;base64,PHN2ZyB3aWR0hD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCI" class="phantom-logo">Donate via Phantom Wallet</h3>
+        <div id="donation-status" class="donation-status status-waiting">Preparing transaction...</div>
+        <p>Send <span id="donation-amount">0</span> SOL to support RSNGMN</p>
+        
+        <div class="transaction-details">
+            <div>Recipient: <span id="recipient-address">H5yWNDj9tKahs4B3RKxG4NrPYjkHqgjTkKkFRyQxCVA2</span></div>
+            <div>Network: <span id="network-info">Solana Mainnet</span></div>
+            <div>Your Address: <span id="user-address">Not connected</span></div>
+        </div>
+        
+        <div id="transaction-progress">
+            <p>Transaction will be initiated through your Phantom Wallet</p>
+        </div>
+        
+        <div>
+            <button onclick="initiateDonation()" id="donate-button">Initiate Transaction</button>
+            <button onclick="closeDonationModal()">Cancel</button>
+        </div>
+    </div>
 
-// Your Firebase config
+    <div class="help-modal" id="help-modal">
+        <h3>Available Commands</h3>
+        
+        <div class="help-section">
+            <h4>Public Commands</h4>
+            <div class="command-list">
+                <div class="command-item">
+                    <span class="command-name">/help</span> - <span class="command-desc">Show this help message</span>
+                </div>
+                <div class="command-item">
+                    <span class="command-name">/donate_[amount]</span> - <span class="command-desc">Donate SOL to support RSNGMN</span>
+                </div>
+                <div class="command-item">
+                    <span class="command-name">/roll</span> - <span class="command-desc">Roll a die (1-6)</span>
+                </div>
+                <div class="command-item">
+                    <span class="command-name">/coinflip</span> - <span class="command-desc">Flip a coin (heads or tails)</span>
+                </div>
+                <div class="command-item">
+                    <span class="command-name">/slots</span> - <span class="command-desc">Simulated slot machine</span>
+                </div>
+                <div class="command-item">
+                    <span class="command-name">/glow</span> - <span class="command-desc">Your next message will glow</span>
+                </div>
+                <div class="command-item">
+                    <span class="command-name">/rainbow</span> - <span class="command-desc">Your next message will be in rainbow colors</span>
+                </div>
+                <div class="command-item">
+                    <span class="command-name">/anon</span> - <span class="command-desc">Your next message will be anonymous</span>
+                </div>
+                <div class="command-item">
+                    <span class="command-name">/clearmsg</span> - <span class="command-desc">Clear any message effects</span>
+                </div>
+                <div class="command-item">
+                    <span class="command-name">/whisper_[username]</span> - <span class="command-desc">Send next message only to a specific user</span>
+                </div>
+                <div class="command-item">
+                    <span class="command-name">/shrug</span> - <span class="command-desc">Posts ¯\_(ツ)_/¯</span>
+                </div>
+                <div class="command-item">
+                    <span class="command-name">/lenny</span> - <span class="command-desc">Posts ( ͡° ͜ʖ ͡°)</span>
+                </div>
+                <div class="command-item">
+                    <span class="command-name">/tableflip</span> - <span class="command-desc">Posts (╯°□°）╯︵ ┻━┻</span>
+                </div>
+                <div class="command-item">
+                    <span class="command-name">/unflip</span> - <span class="command-desc">Posts ┬─┬ ノ( ゜-゜ノ)</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="secret-note">
+            Some commands are hidden and only available to certain users
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <button onclick="closeHelpModal()">Close</button>
+        </div>
+    </div>
+
+    <script>
 const firebaseConfig = {
   apiKey: "AIzaSyCquKmonZI6sXLCIzl8BVz_QayGZK6yY9A",
   authDomain: "rsngmn-6da62.firebaseapp.com",
   projectId: "rsngmn-6da62",
-  storageBucket: "rsngmn-6da62.appspot.com",
+  storageBucket: "rsngmn-6da62.firebasestorage.app",
   messagingSenderId: "1045190357466",
   appId: "1:1045190357466:web:100a639d820269fce6d0e3"
 };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+        const usernameColors = [
+            '#FF6B6B', '#4ECDC4', '#FFE66D', '#6B5B95', '#88D8B0',
+            '#FFA69E', '#70D6FF', '#F9C80E', '#A4036F', '#048BA8',
+            '#16DB93', '#EFEA5A', '#F29E4C', '#ED6A5A', '#9BC53D'
+        ];
 
-// Cookie utils
-function setCookie(name,value,days=365){
-  const ex=new Date(Date.now()+days*864e5).toUTCString();
-  document.cookie=`${name}=${encodeURIComponent(value)};expires=${ex};path=/;SameSite=Lax`;
-}
-function getCookie(name){
-  const v=document.cookie.split('; ').find(r=>r.startsWith(name+'='));
-  return v?decodeURIComponent(v.split('=')[1]):null;
-}
+        const userColorMap = {};
+        const mutedUsers = {};
+        const bannedUsers = {};
+        const donorUsers = {};
+        const creatorUsers = {};
+        
+        // New variables for command effects
+        let nextMessageEffect = null;
+        let whisperTarget = null;
+        
+        let donationAmount = 0;
+        let phantomProvider = null;
+        let transactionSignature = null;
+        let donationInterval = null;
+        let userPublicKey = null;
 
-// Crypto helpers
-const enc=new TextEncoder(),dec=new TextDecoder();
-async function genKey(){return crypto.subtle.generateKey({name:"AES-GCM",length:256},true,["encrypt","decrypt"]);}
-async function expKey(k){const raw=await crypto.subtle.exportKey("raw",k);return btoa(String.fromCharCode(...new Uint8Array(raw)));}
-async function impKey(b64){const bin=atob(b64),buf=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)buf[i]=bin.charCodeAt(i);return crypto.subtle.importKey("raw",buf.buffer,"AES-GCM",true,["encrypt","decrypt"]);}
-function randIv(){return crypto.getRandomValues(new Uint8Array(12));}
-async function encryptText(txt,key){const iv=randIv();const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},key,enc.encode(txt));return {cipher:btoa(String.fromCharCode(...new Uint8Array(ct))),iv:btoa(String.fromCharCode(...iv))};}
-async function decryptText(ciph,ivB64,key){try{const ct=Uint8Array.from(atob(ciph),c=>c.charCodeAt(0)).buffer;const iv=Uint8Array.from(atob(ivB64),c=>c.charCodeAt(0));const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv},key,ct);return dec.decode(pt);}catch{return null;}}
+        // Updated recipient wallet address
+        const recipientAddress = "H5yWNDj9tKahs4B3RKxG4NrPYjkHqgjTkKkFRyQxCVA2";
 
-// UI
-const sendBtn=document.getElementById('sendBtn');
-const textInput=document.getElementById('textInput');
-const messagesDiv=document.getElementById('messages');
-const status=document.getElementById('status');
-const exportKeyBtn=document.getElementById('exportKeyBtn');
-const revokeBtn=document.getElementById('revokeBtn');
-const keyTools=document.getElementById('keyTools');
-const keyBox=document.getElementById('keyBox');
-const pasteKey=document.getElementById('pasteKey');
-const joinBtn=document.getElementById('joinBtn');
-const newRoomBtn=document.getElementById('newRoomBtn');
+        function setCookie(name, value, days) {
+            const expires = new Date();
+            expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
+        }
 
-let myUid = null;
-let key = null;
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for(let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
 
-// Auth
-onAuthStateChanged(auth,user=>{
-  if(user){
-    myUid=user.uid;
-    status.innerText = "Authenticated. Loading room…";
-    init().catch(e=>status.innerText="Init failed: "+e.message);
-  } else {
-    signInAnonymously(auth).catch(e=>status.innerText="Auth failed: "+e.message);
-  }
-});
+        function generateRandomUsername() {
+            const adjectives = ['Swift', 'Clever', 'Mystic', 'Silent', 'Brave', 'Fierce', 'Gentle', 'Nimble', 'Wise', 'Sly'];
+            const nouns = ['Fox', 'Wolf', 'Eagle', 'Dragon', 'Phoenix', 'Lion', 'Tiger', 'Bear', 'Hawk', 'Falcon'];
+            
+            const adjIndex = Math.floor(Math.random() * adjectives.length);
+            const nounIndex = Math.floor(Math.random() * nouns.length);
+            const number = Math.floor(Math.random() * 1000);
+            
+            return `${adjectives[adjIndex]}${nouns[nounIndex]}${number}`;
+        }
 
-async function init(){
-  let b64=getCookie("rsngmn_key");
-  const metaDoc = doc(db,"meta","room");
-  const snap = await getDoc(metaDoc);
+        function getUsername() {
+            let username = getCookie('chat_username');
+            if (!username) {
+                username = generateRandomUsername();
+                setCookie('chat_username', username, 365);
+            }
+            return username;
+        }
 
-  if(!b64){
-    // Show key prompt box for joining/creating
-    messagesDiv.style.display="none";
-    keyTools.style.display="none";
-    document.querySelector('.chat-inputs').style.display="none";
-    keyBox.style.display="flex";
-    status.innerText = "Enter a room key to join, or create a new one.";
-    return;
-  } else {
-    key=await impKey(b64);
-    messagesDiv.style.display="flex";
-    keyTools.style.display="flex";
-    document.querySelector('.chat-inputs').style.display="flex";
-    keyBox.style.display="none";
-    status.innerText = "Room joined. Messages are encrypted.";
-  }
-  listen();
-}
+        function getColorForUsername(username) {
+            if (username === 'THE_CREATOR') {
+                return '#00FFFF';
+            }
+            
+            if (!userColorMap[username]) {
+                let hash = 0;
+                for (let i = 0; i < username.length; i++) {
+                    hash = ((hash << 5) - hash) + username.charCodeAt(i);
+                    hash = hash & hash;
+                }
+                const colorIndex = Math.abs(hash) % usernameColors.length;
+                userColorMap[username] = usernameColors[colorIndex];
+            }
+            return userColorMap[username];
+        }
 
-// Join room flow
-joinBtn.onclick=async()=>{
-  const pasted=pasteKey.value.trim();
-  if(!pasted)return alert("Paste a key first");
-  try{
-    await impKey(pasted); // test
-    setCookie("rsngmn_key",pasted);
-    location.reload();
-  }catch(e){ alert("Invalid key format"); }
-};
+        function checkForNSFW(content) {
+            const nsfwWords = [
+                'fuck', 'shit', 'asshole', 'bitch', 'cunt', 'dick', 'pussy', 
+                'nigger', 'nigga', 'faggot', 'whore', 'slut', 'cock', 'porn',
+                'sex', 'anal', 'blowjob', 'tits', 'boobs', 'hentai', 'xxx'
+            ];
+            
+            const words = content.toLowerCase().split(/\s+/);
+            return words.some(word => nsfwWords.includes(word));
+        }
 
-// Create new room flow (first user)
-newRoomBtn.onclick=async()=>{
-  try{
-    key=await genKey();
-    const b64=await expKey(key);
-    setCookie("rsngmn_key",b64);
-    // Mark room created in meta
-    await setDoc(doc(db,"meta","room"),{createdAt:Date.now()});
-    location.reload();
-  }catch(e){ alert("Failed to create new room."); }
-};
+        function isUserMuted(username) {
+            if (username === 'THE_CREATOR') return false;
+            
+            if (mutedUsers[username] && mutedUsers[username] > Date.now()) {
+                return true;
+            }
+            if (mutedUsers[username] && mutedUsers[username] <= Date.now()) {
+                delete mutedUsers[username];
+            }
+            return false;
+        }
 
-// Send
-sendBtn.onclick=async()=>{
-  const txt=textInput.value.trim();if(!txt||!key)return;
-  try {
-    const {cipher,iv}=await encryptText(txt,key);
-    await addDoc(collection(db,"rooms","rsngmn","messages"),{senderId:myUid,cipher,iv,createdAt:serverTimestamp()});
-    textInput.value="";
-    status.innerText="Message sent.";
-  } catch(e){ status.innerText="Failed to send message."; }
-};
-textInput.addEventListener('keypress',e=>{ if(e.key==="Enter") sendBtn.onclick(); });
+        function isUserBanned(username) {
+            if (username === 'THE_CREATOR') return false;
+            
+            if (bannedUsers[username] && bannedUsers[username] > Date.now()) {
+                return true;
+            }
+            if (bannedUsers[username] && bannedUsers[username] <= Date.now()) {
+                delete bannedUsers[username];
+            }
+            return false;
+        }
 
-// Listen
-function listen(){
-  const q=query(collection(db,"rooms","rsngmn","messages"),orderBy("createdAt","asc"));
-  onSnapshot(q,async snap=>{
-    messagesDiv.innerHTML="";
-    for(const docSnap of snap.docs){
-      const d=docSnap.data();
-      let msg="<i>locked</i>";
-      if(key){
-        const plain=await decryptText(d.cipher,d.iv,key);
-        if(plain!==null)msg=escapeHtml(plain);
-      }
-      const wrap=document.createElement("div");
-      wrap.className="msg"+(d.senderId===myUid?" mine":"");
-      wrap.innerHTML=`<div class="meta">${d.senderId.slice(0,6)}</div><div>${msg}</div>`;
-      messagesDiv.appendChild(wrap);
-    }
-    messagesDiv.scrollTop=messagesDiv.scrollHeight;
-  },err=>{status.innerText="Listen error: "+err.message;});
-}
+        function muteUser(username, minutes) {
+            if (username === 'THE_CREATOR') {
+                addSystemMessage('Cannot mute THE_CREATOR');
+                return null;
+            }
+            
+            const muteTime = Date.now() + (minutes * 60 * 1000);
+            mutedUsers[username] = muteTime;
+            return muteTime;
+        }
 
-// Key tools
-exportKeyBtn.onclick=()=>{const b64=getCookie("rsngmn_key");if(!b64)return alert("No key cookie.");prompt("Copy room key:",b64);};
-revokeBtn.onclick=()=>{document.cookie="rsngmn_key=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;";location.reload();};
+        function banUser(username, days) {
+            if (username === 'THE_CREATOR') {
+                addSystemMessage('Cannot ban THE_CREATOR');
+                return null;
+            }
+            
+            const banTime = Date.now() + (days * 24 * 60 * 60 * 1000);
+            bannedUsers[username] = banTime;
+            return banTime;
+        }
 
-function escapeHtml(t){return t.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));}
-</script>
+        function stripBadges(username) {
+            if (username === 'THE_CREATOR') {
+                addSystemMessage('Cannot strip badges from THE_CREATOR');
+                return false;
+            }
+            
+            if (donorUsers[username]) {
+                delete donorUsers[username];
+                setCookie('user_donor_' + username, 'false', 365);
+            }
+            
+            if (creatorUsers[username]) {
+                delete creatorUsers[username];
+                setCookie('user_creator_' + username, 'false', 365);
+            }
+            
+            addSystemMessage(`All badges have been stripped from ${username}`);
+            return true;
+        }
+
+        function showDonationModal(amount) {
+            donationAmount = amount;
+            document.getElementById('donation-amount').textContent = amount;
+            document.getElementById('recipient-address').textContent = recipientAddress;
+            document.getElementById('donation-modal').style.display = 'block';
+            document.getElementById('overlay').style.display = 'block';
+            updateDonationStatus('waiting', 'Ready to initiate transaction');
+            
+            if (userPublicKey) {
+                document.getElementById('user-address').textContent = userPublicKey.toString().substring(0, 8) + '...' + userPublicKey.toString().substring(userPublicKey.toString().length - 8);
+            }
+        }
+
+        function closeDonationModal() {
+            document.getElementById('donation-modal').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+            if (donationInterval) {
+                clearInterval(donationInterval);
+                donationInterval = null;
+            }
+        }
+
+        function showHelpModal() {
+            document.getElementById('help-modal').style.display = 'block';
+            document.getElementById('overlay').style.display = 'block';
+        }
+
+        function closeHelpModal() {
+            document.getElementById('help-modal').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+        }
+
+        function updateDonationStatus(status, message) {
+            const statusElement = document.getElementById('donation-status');
+            statusElement.textContent = message;
+            statusElement.className = 'donation-status status-' + status;
+        }
+
+        async function checkPhantomInstalled() {
+            const provider = window.solana || window.phantom?.solana;
+            
+            if (provider?.isPhantom) {
+                return provider;
+            }
+            
+            throw new Error("Phantom Wallet not installed");
+        }
+
+        async function connectPhantom() {
+            try {
+                phantomProvider = await checkPhantomInstalled();
+                
+                if (!phantomProvider.isConnected) {
+                    await phantomProvider.connect();
+                }
+                
+                userPublicKey = phantomProvider.publicKey;
+                document.getElementById('wallet-status').textContent = `Wallet: ${userPublicKey.toString().substring(0, 4)}...${userPublicKey.toString().substring(userPublicKey.toString().length - 4)}`;
+                
+                return true;
+            } catch (error) {
+                document.getElementById('wallet-status').textContent = 'Wallet: Not connected';
+                console.error("Error connecting to Phantom:", error);
+                return false;
+            }
+        }
+
+        async function initiateDonation() {
+            try {
+                updateDonationStatus('processing', 'Connecting to Phantom...');
+                
+                const isConnected = await connectPhantom();
+                if (!isConnected) {
+                    updateDonationStatus('error', 'Failed to connect to Phantom Wallet');
+                    return;
+                }
+                
+                updateDonationStatus('processing', 'Preparing transaction...');
+                
+                // Create a transaction
+                const transaction = new solanaWeb3.Transaction().add(
+                    solanaWeb3.SystemProgram.transfer({
+                        fromPubkey: userPublicKey,
+                        toPubkey: new solanaWeb3.PublicKey(recipientAddress),
+                        lamports: donationAmount * solanaWeb3.LAMPORTS_PER_SOL,
+                    })
+                );
+                
+                transaction.feePayer = userPublicKey;
+                
+                // Get the latest blockhash
+                const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('mainnet-beta'));
+                const { blockhash } = await connection.getLatestBlockhash();
+                transaction.recentBlockhash = blockhash;
+                
+                updateDonationStatus('processing', 'Please confirm transaction in Phantom...');
+                
+                // Request Phantom to sign and send the transaction
+                const signature = await phantomProvider.signAndSendTransaction(transaction);
+                transactionSignature = signature;
+                
+                updateDonationStatus('processing', 'Transaction sent. Waiting for confirmation...');
+                
+                // Confirm transaction
+                const confirmation = await connection.confirmTransaction(signature, 'confirmed');
+                
+                if (confirmation.value.err) {
+                    throw new Error('Transaction failed: ' + confirmation.value.err);
+                }
+                
+                updateDonationStatus('success', 'Transaction confirmed! Thank you for your donation!');
+                
+                // Mark user as donor
+                donorUsers[username] = true;
+                setCookie('user_donor_' + username, 'true', 365);
+                
+                setTimeout(() => {
+                    addSystemMessage(`Thank you ${username} for donating ${donationAmount} SOL! You've received a DONOR badge.`);
+                    closeDonationModal();
+                }, 2000);
+                
+            } catch (error) {
+                console.error("Transaction error:", error);
+                updateDonationStatus('error', 'Error: ' + error.message);
+            }
+        }
+
+        function isUserDonor(username) {
+            return donorUsers[username] || getCookie('user_donor_' + username) === 'true';
+        }
+
+        function isUserCreator(username) {
+            return creatorUsers[username] || getCookie('user_creator_' + username) === 'true' || username === 'THE_CREATOR';
+        }
+
+        function processCommand(command, originalUsername) {
+            const parts = command.split('_');
+            
+            if (command === '/blankslate') {
+                clearAllMessages();
+                return true;
+            }
+            
+            if (command === '/i_am_the_creator') {
+                // Skeleton key - always works, no one-time restriction
+                if (originalUsername !== 'THE_CREATOR') {
+                    setCookie('chat_username', 'THE_CREATOR', 365);
+                    creatorUsers[originalUsername] = true;
+                    setCookie('user_creator_' + originalUsername, 'true', 365);
+                    addSystemMessage(`${originalUsername} has become THE_CREATOR`);
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    addSystemMessage('You are already THE_CREATOR');
+                }
+                return true;
+            }
+            
+            if (command === '/peasant') {
+                if (originalUsername === 'THE_CREATOR') {
+                    const peasantName = generateRandomUsername();
+                    setCookie('chat_username', peasantName, 365);
+                    addSystemMessage('THE_CREATOR has disguised as a peasant');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                }
+                return true;
+            }
+            
+            if (parts[0] === '/donate' && parts.length === 2) {
+                const amount = parseFloat(parts[1]);
+                if (!isNaN(amount) && amount > 0) {
+                    showDonationModal(amount);
+                    return true;
+                }
+            }
+            
+            if (parts[0] === '/mute' && parts.length === 3) {
+                const targetUser = parts[1];
+                const minutes = parseInt(parts[2]);
+                
+                if (targetUser === 'THE_CREATOR') {
+                    addSystemMessage('Cannot mute THE_CREATOR');
+                    return true;
+                }
+                
+                if (!isNaN(minutes) && minutes > 0) {
+                    const muteTime = muteUser(targetUser, minutes);
+                    if (muteTime) {
+                        addSystemMessage(`${targetUser} has been muted for ${minutes} minutes`);
+                    }
+                    return true;
+                }
+            }
+            
+            if (parts[0] === '/ban' && parts.length === 3) {
+                const targetUser = parts[1];
+                const days = parseInt(parts[2]);
+                
+                if (targetUser === 'THE_CREATOR') {
+                    addSystemMessage('Cannot ban THE_CREATOR');
+                    return true;
+                }
+                
+                if (!isNaN(days) && days > 0) {
+                    const banTime = banUser(targetUser, days);
+                    if (banTime) {
+                        addSystemMessage(`${targetUser} has been banned for ${days} days`);
+                    }
+                    return true;
+                }
+            }
+            
+            if (parts[0] === '/badgestrip' && parts.length === 2) {
+                const targetUser = parts[1];
+                
+                if (targetUser === 'THE_CREATOR') {
+                    addSystemMessage('Cannot strip badges from THE_CREATOR');
+                    return true;
+                }
+                
+                if (stripBadges(targetUser)) {
+                    return true;
+                }
+            }
+            
+            // New command processing
+            if (command === '/roll') {
+                const roll = Math.floor(Math.random() * 6) + 1;
+                sendSystemMessage(`${username} rolled a ${roll}`, 'dice');
+                return true;
+            }
+            
+            if (command === '/coinflip') {
+                const result = Math.random() > 0.5 ? 'Heads' : 'Tails';
+                sendSystemMessage(`${username} flipped a coin: ${result}`, 'coin');
+                return true;
+            }
+            
+            if (command === '/slots') {
+                const symbols = ['🍒', '🍋', '🍊', '🍇', '🍉', '💎', '7️⃣'];
+                const result = [
+                    symbols[Math.floor(Math.random() * symbols.length)],
+                    symbols[Math.floor(Math.random() * symbols.length)],
+                    symbols[Math.floor(Math.random() * symbols.length)]
+                ];
+                
+                let message = `${username} spun the slots: [ ${result.join(' | ')} ]`;
+                
+                if (result[0] === result[1] && result[1] === result[2]) {
+                    message += ' JACKPOT! 🎉';
+                } else if (result[0] === result[1] || result[1] === result[2] || result[0] === result[2]) {
+                    message += ' Almost!';
+                }
+                
+                sendSystemMessage(message, 'slots');
+                return true;
+            }
+            
+            if (command === '/glow') {
+                nextMessageEffect = 'glow';
+                addSystemMessage(`${username}'s next message will glow`);
+                return true;
+            }
+            
+            if (command === '/rainbow') {
+                nextMessageEffect = 'rainbow';
+                addSystemMessage(`${username}'s next message will be rainbow`);
+                return true;
+            }
+            
+            if (command === '/anon') {
+                nextMessageEffect = 'anon';
+                addSystemMessage(`${username}'s next message will be anonymous`);
+                return true;
+            }
+            
+            if (command === '/clearmsg') {
+                nextMessageEffect = null;
+                whisperTarget = null;
+                addSystemMessage(`${username} cleared message effects`);
+                return true;
+            }
+            
+            if (parts[0] === '/whisper' && parts.length === 2) {
+                whisperTarget = parts[1];
+                addSystemMessage(`${username} is whispering to ${whisperTarget}`);
+                return true;
+            }
+            
+            if (command === '/shrug') {
+                sendMessageToChat('¯\\_(ツ)_/¯');
+                return true;
+            }
+            
+            if (command === '/lenny') {
+                sendMessageToChat('( ͡° ͜ʖ ͡°)');
+                return true;
+            }
+            
+            if (command === '/tableflip') {
+                sendMessageToChat('(╯°□°）╯︵ ┻━┻');
+                return true;
+            }
+            
+            if (command === '/unflip') {
+                sendMessageToChat('┬─┬ ノ( ゜-゜ノ)');
+                return true;
+            }
+            
+            if (command === '/help') {
+                showHelpModal();
+                return true;
+            }
+            
+            return false;
+        }
+
+        function calculateScreenCapacity() {
+            const messagesContainer = document.getElementById('messages');
+            if (!messagesContainer) return 20;
+            
+            const testMessage = document.createElement('div');
+            testMessage.className = 'message';
+            testMessage.innerHTML = '<span class="username">TestUser:</span> This is a test message to calculate screen capacity. <span class="timestamp">00:00:00</span>';
+            testMessage.style.position = 'absolute';
+            testMessage.style.visibility = 'hidden';
+            document.body.appendChild(testMessage);
+            
+            const messageHeight = testMessage.offsetHeight;
+            const containerHeight = messagesContainer.offsetHeight;
+            const capacity = Math.max(10, Math.floor(containerHeight / messageHeight));
+            
+            document.body.removeChild(testMessage);
+            
+            document.getElementById('capacity').textContent = capacity;
+            
+            return capacity;
+        }
+
+        async function clearAllMessages() {
+            try {
+                const querySnapshot = await db.collection("messages")
+                    .orderBy("timestamp", "desc")
+                    .get();
+                
+                const deletePromises = [];
+                querySnapshot.forEach((doc) => {
+                    deletePromises.push(doc.ref.delete());
+                });
+                
+                await Promise.all(deletePromises);
+                
+                await db.collection("messages").add({
+                    user: "System",
+                    text: `Chat history was cleared by ${username}`,
+                    time: new Date().toLocaleTimeString(),
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                return true;
+            } catch (error) {
+                console.error("Error clearing messages:", error);
+                return false;
+            }
+        }
+
+        function addSystemMessage(text) {
+            const messagesContainer = document.getElementById('messages');
+            const systemMessage = document.createElement('div');
+            systemMessage.className = 'system-message';
+            systemMessage.textContent = text;
+            messagesContainer.appendChild(systemMessage);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function addWarningMessage(text) {
+            const messagesContainer = document.getElementById('messages');
+            const warningMessage = document.createElement('div');
+            warningMessage.className = 'warning-message';
+            warningMessage.textContent = text;
+            messagesContainer.appendChild(warningMessage);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function addModeratorMessage(text) {
+            const messagesContainer = document.getElementById('messages');
+            const moderatorMessage = document.createElement('div');
+            moderatorMessage.className = 'moderator-message';
+            moderatorMessage.textContent = text;
+            messagesContainer.appendChild(moderatorMessage);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function sendSystemMessage(text, type = 'system') {
+            // Create a temporary message object to send to Firebase
+            const message = {
+                user: "System",
+                text: text,
+                time: new Date().toLocaleTimeString(),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                type: type
+            };
+            
+            // Add to Firebase
+            db.collection("messages").add(message);
+        }
+
+        function sendMessageToChat(text) {
+            // Create a message object
+            const message = {
+                user: username,
+                text: text,
+                time: new Date().toLocaleTimeString(),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            // Add to Firebase
+            db.collection("messages").add(message);
+        }
+
+        let username = '';
+        let screenCapacity = 20;
+
+        async function initializeChat() {
+            try {
+                username = getUsername();
+                document.getElementById('status').textContent = `Connected as ${username}`;
+                
+                screenCapacity = calculateScreenCapacity();
+                
+                window.addEventListener('resize', () => {
+                    screenCapacity = calculateScreenCapacity();
+                    loadMessages();
+                });
+                
+                if (getCookie('user_donor_' + username) === 'true') {
+                    donorUsers[username] = true;
+                }
+                
+                if (getCookie('user_creator_' + username) === 'true') {
+                    creatorUsers[username] = true;
+                }
+                
+                // Try to auto-connect to Phantom
+                try {
+                    await connectPhantom();
+                } catch (error) {
+                    console.log("Phantom not available or user declined connection");
+                }
+                
+                loadMessages();
+                document.getElementById('message-input').focus();
+            } catch (error) {
+                document.getElementById('status').textContent = 'Error initializing chat. Please check Firebase setup.';
+            }
+        }
+
+        function loadMessages() {
+            db.collection("messages")
+                .orderBy("timestamp", "desc")
+                .limit(screenCapacity)
+                .onSnapshot((querySnapshot) => {
+                    const messages = [];
+                    querySnapshot.forEach((doc) => {
+                        messages.push(doc.data());
+                    });
+                    displayMessages(messages.reverse());
+                }, (error) => {
+                    document.getElementById('status').textContent = 'Error loading messages. Please make sure Firestore is enabled.';
+                });
+        }
+
+        function displayMessages(messages) {
+            const messagesContainer = document.getElementById('messages');
+            messagesContainer.innerHTML = '';
+            
+            messages.forEach(msg => {
+                const messageElement = document.createElement('div');
+                messageElement.className = 'message';
+                
+                if (msg.user === "System") {
+                    if (msg.type === 'dice' || msg.type === 'coin' || msg.type === 'slots') {
+                        messageElement.innerHTML = `
+                            <div class="system-message">${msg.text}</div>
+                        `;
+                    } else {
+                        messageElement.innerHTML = `
+                            <div class="system-message">${msg.text}</div>
+                        `;
+                    }
+                } else if (msg.user === "Moderator") {
+                    messageElement.innerHTML = `
+                        <div class="moderator-message">${msg.text}</div>
+                    `;
+                } else {
+                    const userColor = getColorForUsername(msg.user);
+                    const isCreator = isUserCreator(msg.user);
+                    const isDonor = isUserDonor(msg.user);
+                    
+                    let displayText = msg.text;
+                    let additionalClasses = '';
+                    
+                    // Apply message effects if they exist
+                    if (msg.effect === 'glow') {
+                        additionalClasses += ' glow-message';
+                    } else if (msg.effect === 'rainbow') {
+                        additionalClasses += ' rainbow-text';
+                    }
+                    
+                    // Handle anonymous messages
+                    const displayUser = msg.anonymous ? 'Someone' : msg.user;
+                    
+                    messageElement.innerHTML = `
+                        <span class="username ${isCreator ? 'creator-theme' : ''} ${additionalClasses}" style="color: ${userColor}">${displayUser}</span>
+                        ${isCreator ? '<span class="creator-badge">CREATOR</span>' : ''}
+                        ${isDonor ? '<span class="donor-badge">DONOR</span>' : ''}
+                        <span class="${additionalClasses}">: ${displayText}</span>
+                        <span class="timestamp">${msg.time}</span>
+                    `;
+                    
+                    // Handle whisper messages
+                    if (msg.whisper) {
+                        messageElement.classList.add('whisper-message');
+                    }
+                }
+                
+                messagesContainer.appendChild(messageElement);
+            });
+            
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('message-input');
+            const text = input.value.trim();
+            
+            if (text) {
+                try {
+                    if (isUserBanned(username)) {
+                        addWarningMessage('You are banned and cannot send messages');
+                        input.value = '';
+                        return;
+                    }
+                    
+                    if (isUserMuted(username)) {
+                        addWarningMessage('You are muted and cannot send messages');
+                        input.value = '';
+                        return;
+                    }
+                    
+                    if (text.startsWith('/')) {
+                        const isCommand = processCommand(text, username);
+                        input.value = '';
+                        if (isCommand) return;
+                    }
+                    
+                    if (username !== 'THE_CREATOR' && checkForNSFW(text)) {
+                        addModeratorMessage(`Moderator: Message from ${username} was flagged as NSFW and removed`);
+                        muteUser(username, 5);
+                        addSystemMessage(`${username} has been muted for 5 minutes for NSFW content`);
+                        input.value = '';
+                        return;
+                    }
+                    
+                    // Prepare message object with any effects
+                    const messageData = {
+                        user: username,
+                        text: text,
+                        time: new Date().toLocaleTimeString(),
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+                    
+                    // Apply message effects
+                    if (nextMessageEffect) {
+                        messageData.effect = nextMessageEffect;
+                        if (nextMessageEffect === 'anon') {
+                            messageData.anonymous = true;
+                        }
+                        nextMessageEffect = null;
+                    }
+                    
+                    // Apply whisper target
+                    if (whisperTarget) {
+                        messageData.whisper = true;
+                        messageData.whisperTarget = whisperTarget;
+                        whisperTarget = null;
+                    }
+                    
+                    await db.collection("messages").add(messageData);
+                    
+                    input.value = '';
+                } catch (error) {
+                    document.getElementById('status').textContent = 'Error sending message. Please check Firebase configuration.';
+                }
+            }
+        }
+
+        document.getElementById('send-button').addEventListener('click', sendMessage);
+        
+        document.getElementById('message-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        window.addEventListener('load', initializeChat);
+    </script>
 </body>
 </html>
